@@ -38,13 +38,27 @@ IMG_CREATED := `date -j -u -f "%FT%T" "$(STR_CREATED)" +"%s" 2>/dev/null || echo
 
 CCACHE_DIR := /mnt/sda1/ccache
 
+UNAME_S := $(shell uname -s)
+
+
 all: $(TARGETS)
 
 $(TARGETS): build | output
 	docker cp $(BUILD_CONTAINER):/build/buildroot/output/images/$(@F) output/
 
-build: $(SOURCES) | .dl
+bo: $(SOURCES)
+ifeq ($(UNAME_S),Linux)
+	$(eval SRC_UPDATED=$$(shell stat -c "%Y" $^ | sort -gr | head -n1))
+else
 	$(eval SRC_UPDATED=$$(shell stat -f "%m" $^ | sort -gr | head -n1))
+endif
+
+build: $(SOURCES) | .dl
+ifeq ($(UNAME_S),Linux)
+	$(eval SRC_UPDATED=$$(shell stat -c "%Y" $^ | sort -gr | head -n1))
+else
+	$(eval SRC_UPDATED=$$(shell stat -f "%m" $^ | sort -gr | head -n1))
+endif
 	@if [ "$(SRC_UPDATED)" -gt "$(IMG_CREATED)" ]; then \
 		set -e; \
 		find . -type f -name '.DS_Store' | xargs rm -f; \
