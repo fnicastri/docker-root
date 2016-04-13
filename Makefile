@@ -46,13 +46,6 @@ all: $(TARGETS)
 $(TARGETS): build | output
 	docker cp $(BUILD_CONTAINER):/build/buildroot/output/images/$(@F) output/
 
-bo: $(SOURCES)
-ifeq ($(UNAME_S),Linux)
-	$(eval SRC_UPDATED=$$(shell stat -c "%Y" $^ | sort -gr | head -n1))
-else
-	$(eval SRC_UPDATED=$$(shell stat -f "%m" $^ | sort -gr | head -n1))
-endif
-
 build: $(SOURCES) | .dl
 ifeq ($(UNAME_S),Linux)
 	$(eval SRC_UPDATED=$$(shell stat -c "%Y" $^ | sort -gr | head -n1))

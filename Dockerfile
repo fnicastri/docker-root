@@ -5,7 +5,7 @@ ENV TERM xterm
 RUN apt-get -q update && \
     apt-get -q -y install --no-install-recommends ca-certificates \
       bc build-essential cpio file python unzip rsync wget \
-      syslinux xorriso dosfstools mtools && \
+      syslinux xorriso dosfstools mtools gnupg lib32stdc++6 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Setup environment
@@ -30,6 +30,8 @@ RUN mkdir -p etc/ssl/certs && \
 RUN mkdir -p usr/share/bash-completion/completions && \
     wget -qO usr/share/bash-completion/bash_completion https://raw.githubusercontent.com/scop/bash-completion/master/bash_completion && \
     chmod +x usr/share/bash-completion/bash_completion
+
+
 
 # Add Docker
 ENV DOCKER_VERSION 1.9.1
@@ -61,6 +63,19 @@ RUN mkdir -p usr/bin && \
     wget -qO usr/bin/pkg https://raw.githubusercontent.com/ailispaw/docker-root-pkg/master/pkg && \
     chmod +x usr/bin/pkg
 
+# Add Node
+
+ENV NPM_CONFIG_LOGLEVEL info
+ENV NODE_VERSION 4.4.3
+
+RUN wget -q https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz \
+    && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/ --strip-components=1 \
+    && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
+# RUN cd $(npm root -g)/npm \
+#  && npm install fs-extra \
+#  && sed -i -e s/graceful-fs/fs-extra/ -e s/fs\.move/fs.rename/ ./lib/utils/rename.js
+RUN npm install -g  npm gulp-cli bower
+
 # Copy config files
 COPY configs ${SRC_DIR}/configs
 RUN cp ${SRC_DIR}/configs/buildroot.config ${BR_ROOT}/.config && \
@@ -71,4 +86,4 @@ COPY scripts ${SRC_DIR}/scripts
 VOLUME ${BR_ROOT}/ccache ${BR_ROOT}/dl
 
 WORKDIR ${BR_ROOT}
-CMD ["../scripts/build.sh"]
+#CMD ["../scripts/build.sh"]
